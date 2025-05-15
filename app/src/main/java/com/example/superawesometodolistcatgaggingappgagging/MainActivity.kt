@@ -12,13 +12,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import com.example.superawesometodolistcatgaggingappgagging.screens.CalendarScreen
-import com.example.superawesometodolistcatgaggingappgagging.screens.LoginScreen
-import com.example.superawesometodolistcatgaggingappgagging.screens.NoteScreen
+import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.CalendarScreen
+import com.example.superawesometodolistcatgaggingappgagging.screens.login.LoginScreen
+import com.example.superawesometodolistcatgaggingappgagging.screens.task.TaskScreen
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
 
 enum class Screens() {
-    Login, Calendar, Note
+    Login, Calendar, Task
 }
 
 val tempDay = Day(15, 5)
@@ -64,9 +64,9 @@ fun Routes(
             //Include button in calendar screen then passing the selected day into NoteScreen
             CalendarScreen()
         }
-        dialog(route = Screens.Note.name) {
-            //Pass current day (selected from calendar) into NoteScreen
-            NoteScreen(tempDay)
+        dialog(route = Screens.Task.name) {
+            //Pass current day into task
+            TaskScreen()
         }
     }
 }

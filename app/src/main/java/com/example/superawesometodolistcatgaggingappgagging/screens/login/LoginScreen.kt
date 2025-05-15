@@ -1,4 +1,4 @@
-package com.example.superawesometodolistcatgaggingappgagging.screens
+package com.example.superawesometodolistcatgaggingappgagging.screens.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
