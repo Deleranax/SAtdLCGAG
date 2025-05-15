@@ -1,4 +1,4 @@
-package com.example.superawesometodolistcatgaggingappgagging.screens
+package com.example.superawesometodolistcatgaggingappgagging.screens.task
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
@@ -8,7 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoteScreen(
+fun TaskScreen(
     modifier: Modifier = Modifier,
     onClose: () -> Unit = {}
 ) {
@@ -21,6 +21,6 @@ fun NoteScreen(
 
 @Composable
 @Preview
-fun NoteScreenPreview() {
-    NoteScreen()
+fun TaskScreenPreview() {
+    TaskScreen()
 }
