@@ -1,9 +1,12 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.calendar
 
+import android.util.Log
+import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,6 +49,8 @@ import java.time.format.TextStyle
 import java.util.Locale
 import kotlin.math.absoluteValue
 
+private val TAG = "CalendarScreen"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalendarScreen(
@@ -54,7 +59,7 @@ fun CalendarScreen(
 ) {
     val currentDayState = viewModel.currentDayStateFlow.collectAsState(LocalDate.now())
     val context = LocalContext.current
-    val imageUrl = viewModel.imageUrl.collectAsState()
+    val imageUrl by viewModel.imageUrl.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -103,6 +108,7 @@ fun CalendarScreen(
                     ) {
                         Text("Show New Cat")
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
                     imageUrl?.let {
                         Image(
                             painter = rememberAsyncImagePainter(it),

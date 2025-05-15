@@ -1,6 +1,7 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.calendar;
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -16,6 +17,8 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.coroutines.coroutineContext
+
+private val TAG = "CalendarViewModel"
 
 class CalendarViewModel : ViewModel() {
     // Const
@@ -55,15 +58,15 @@ class CalendarViewModel : ViewModel() {
 
     fun fetchNewCat(context: Context){
         val workRequest = OneTimeWorkRequestBuilder<CatWorker>().build()
-        WorkManager.getInstance(context).enqueue(workRequest)
+        val workManager = WorkManager.getInstance(context)
+            workManager.enqueue(workRequest)
 
-        WorkManager.getInstance(context)
-            .getWorkInfoByIdLiveData(workRequest.id)
-            .observeForever { workInfo ->
-                if (workInfo != null && workInfo.state == WorkInfo.State.SUCCEEDED) {
-                    val url = workInfo.outputData.getString("imageUrl")
-                    _imageUrl.value = url
-                }
+        workManager.getWorkInfoByIdLiveData(workRequest.id).observeForever { workInfo ->
+            if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
+                val url = workInfo.outputData.getString("imageUrl")
+                //Log.d(TAG, url.toString())
+                _imageUrl.value = url
             }
+        }
     }
 }
