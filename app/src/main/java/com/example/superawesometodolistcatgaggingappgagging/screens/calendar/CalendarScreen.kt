@@ -1,17 +1,21 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.calendar
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -27,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +53,8 @@ fun CalendarScreen(
     viewModel: CalendarViewModel = viewModel()
 ) {
     val currentDayState = viewModel.currentDayStateFlow.collectAsState(LocalDate.now())
+    val context = LocalContext.current
+    val imageUrl = viewModel.imageUrl.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -86,6 +94,26 @@ fun CalendarScreen(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 // Add the task list here
+                // Show Cat Media
+
+                item {
+                    Button(
+                        onClick = { viewModel.fetchNewCat(context) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Show New Cat")
+                    }
+                    imageUrl?.let {
+                        Image(
+                            painter = rememberAsyncImagePainter(it),
+                            contentDescription = "Cat Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
             }
         }
     }
