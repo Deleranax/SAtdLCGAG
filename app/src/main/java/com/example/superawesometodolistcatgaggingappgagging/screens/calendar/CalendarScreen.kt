@@ -106,7 +106,7 @@ fun CalendarScreen(
                         onClick = { viewModel.fetchNewCat(context) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Show New Cat")
+                        Text("Need some inspiration?")
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     imageUrl?.let {
