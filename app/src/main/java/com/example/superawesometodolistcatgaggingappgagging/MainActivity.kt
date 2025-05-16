@@ -13,7 +13,6 @@ import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.CalendarScreen
-import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.Day
 import com.example.superawesometodolistcatgaggingappgagging.screens.login.LoginScreen
 import com.example.superawesometodolistcatgaggingappgagging.screens.task.TaskScreen
 import com.example.superawesometodolistcatgaggingappgagging.screens.task.ToDo_Item
@@ -26,12 +25,9 @@ enum class Screens() {
     Login, Calendar, Task
 }
 
-val tempDay = Day(15, 5)
-
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initTempDay(tempDay)
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -71,25 +67,7 @@ fun Routes(
         }
         dialog(route = Screens.Task.name) {
             //Pass current day (selected from calendar) into NoteScreen
-            TaskScreen(tempDay)
+            TaskScreen()
         }
     }
-}
-
-fun initTempDay(day: Day){
-    val tempItem1 = ToDo_Item(
-        day = 15,
-        month = 5,
-        "Birthday Party",
-        "This is the description for a birthday"
-    )
-
-    val tempItem2 = ToDo_Item(
-        day = 20,
-        month = 1,
-        "Start school",
-        "This is the description for school starting"
-    )
-    day.addItem(tempItem1)
-    day.addItem(tempItem2)
 }

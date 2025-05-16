@@ -11,4 +11,5 @@
     <string name="show_password">Show password</string>
     <string name="application_logo">Application logo</string>
     <string name="add_a_new_task">Add a new task</string>
+    <string name="i_need_inspiration">I need inspiration</string>
 </resources>

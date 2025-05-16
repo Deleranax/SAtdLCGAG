@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -89,17 +90,34 @@ fun CalendarScreen(
                         )
                     }
                 )
-                DaySelector(viewModel = viewModel)
+                DaySelector(
+                    viewModel = viewModel,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {} // Add a task
+            Column(
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = stringResource(R.string.add_a_new_task)
-                )
+                FloatingActionButton(
+                    onClick = {
+                        viewModel.fetchNewCat(context)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Pets,
+                        contentDescription = stringResource(R.string.i_need_inspiration)
+                    )
+                }
+                FloatingActionButton(
+                    onClick = {} // Add a task
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Add,
+                        contentDescription = stringResource(R.string.add_a_new_task)
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -109,19 +127,14 @@ fun CalendarScreen(
         ) {
             if (true /* Check if there if something */) {
                 LazyColumn(
-                    modifier = Modifier.padding(innerPadding).fillMaxSize()
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .fillMaxSize()
                 ) {
                     // Add the task list here
                     // Show Cat Media
 
                     item {
-                        Button(
-                            onClick = { viewModel.fetchNewCat(context) },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Need some inspiration?")
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
                         imageUrl?.let {
                             Image(
                                 painter = rememberAsyncImagePainter(it),
