@@ -21,9 +21,12 @@ enum class Screens() {
     Login, Calendar, Task
 }
 
+val tempDay = Day(15, 5)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        initTempDay(tempDay)
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -58,10 +61,30 @@ fun Routes(
             )
         }
         composable(route = Screens.Calendar.name) {
+            //Include button in calendar screen then passing the selected day into NoteScreen
             CalendarScreen()
         }
         dialog(route = Screens.Task.name) {
-            TaskScreen()
+            //Pass current day (selected from calendar) into NoteScreen
+            TaskScreen(tempDay)
         }
     }
+}
+
+fun initTempDay(day: Day){
+    val tempItem1 = ToDo_Item(
+        day = 15,
+        month = 5,
+        "Birthday Party",
+        "This is the description for a birthday"
+    )
+
+    val tempItem2 = ToDo_Item(
+        day = 20,
+        month = 1,
+        "Start school",
+        "This is the description for school starting"
+    )
+    day.addItem(tempItem1)
+    day.addItem(tempItem2)
 }
