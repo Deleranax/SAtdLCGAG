@@ -1,11 +1,15 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.calendar
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +24,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -67,6 +72,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -168,7 +174,7 @@ fun CalendarScreen(
                     // Lie
                     loadingState = true
                     viewModel.refresh(context)
-                    delay(2000)
+                    delay(1000)
                     loadingState = false
                 }
             },
@@ -180,8 +186,12 @@ fun CalendarScreen(
                         .fillMaxSize()
                         .padding(top = 20.dp)
                 ) {
-                    items(todos) { todo ->
+                    items(
+                        items = todos,
+                        key = { it.todoID }
+                    ) { todo ->
                         TodoItem(
+                            modifier = Modifier.animateItem(),
                             todo = todo,
                             viewModel = viewModel,
                             snackbarHostState = snackbarHostState
@@ -236,6 +246,7 @@ fun CalendarScreen(
 
 @Composable
 fun TodoItem(
+    modifier: Modifier = Modifier,
     todo: TodoTable,
     viewModel: CalendarViewModel,
     snackbarHostState: SnackbarHostState
@@ -244,16 +255,21 @@ fun TodoItem(
     val scope = rememberCoroutineScope()
 
     var done by remember { mutableStateOf(false) }
-    var removed by remember { mutableStateOf(false) }
+    var removed by remember { mutableStateOf(true) }
     var expended by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        removed = false
+    }
 
     AnimatedVisibility(
         visible = !removed,
-        enter = slideInHorizontally(),
-        exit = fadeOut() + slideOutHorizontally()
+        enter = fadeIn() + slideInHorizontally(),
+        exit = fadeOut() + slideOutHorizontally(),
+        modifier = modifier
     ) {
         Card(
-            modifier = Modifier.padding(5.dp),
+            modifier = Modifier.padding(5.dp).wrapContentSize().animateContentSize(),
             onClick = {
                 expended = !expended
             }
@@ -264,43 +280,53 @@ fun TodoItem(
                     .fillMaxWidth()
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = todo.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1.0f)
-                    )
                     Checkbox(
                         checked = done,
                         onCheckedChange = {
                             done = true
 
                             scope.launch{
-                                delay(1000)
+                                delay(500)
+                                removed = true
+                                delay(500)
 
                                 if (viewModel.removeTodo(context, todo.todoID)) {
-                                    removed = true
                                     snackbarHostState.showSnackbar(
                                         context.getString(
                                             R.string.task_completed
                                         ))
                                 } else {
                                     done = false
+                                    removed = false
                                     snackbarHostState.showSnackbar("An error has occurred.")
                                 }
                             }
                         }
                     )
+                    Text(
+                        text = todo.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        maxLines = 1,
+                        textDecoration = if (done) TextDecoration.LineThrough else null,
+                        modifier = Modifier.padding(start = 10.dp),
+                    )
                 }
-                Text(
-                    text = todo.desc,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = if (expended) 100 else 3,
-                    overflow = TextOverflow.Ellipsis
-                )
+                AnimatedVisibility(
+                    visible = todo.desc.isNotEmpty() && expended,
+                    enter = fadeIn() + slideInVertically(),
+                    exit = fadeOut() + slideOutVertically()
+                ) {
+                    Text(
+                        text = todo.desc,
+                        style = MaterialTheme.typography.bodyLarge,
+                        maxLines = 100,
+                        textDecoration = if (done) TextDecoration.LineThrough else null,
+                        modifier = Modifier.padding(10.dp)
+                    )
+                }
             }
         }
     }
