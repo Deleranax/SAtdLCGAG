@@ -30,6 +30,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -96,7 +97,7 @@ fun LoginScreen(
                 TextButton(
                     onClick = {
                         scope.launch {
-                            viewModel.login(
+                            viewModel.register(
                                 context = context,
                                 username = username,
                                 password = passwordState.text.toString(),
@@ -109,7 +110,7 @@ fun LoginScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            viewModel.register(
+                            viewModel.login(
                                 context = context,
                                 username = username,
                                 password = passwordState.text.toString(),
@@ -225,8 +226,20 @@ fun LoginScreen(
                     }
                 }
             }
-            LoginResult.INCORRECT -> {}
-            LoginResult.FAILED -> {}
+            LoginResult.INCORRECT -> {
+                LaunchedEffect(Unit) {
+                    snackbarHostState.showSnackbar(
+                        "Incorrect"
+                    )
+                }
+            }
+            LoginResult.FAILED -> {
+                LaunchedEffect(Unit) {
+                    snackbarHostState.showSnackbar(
+                        "Failed"
+                    )
+                }
+            }
             LoginResult.CORRECT -> onSignIn()
         }
     }
