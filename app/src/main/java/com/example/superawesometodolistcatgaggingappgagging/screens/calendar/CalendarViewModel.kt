@@ -65,8 +65,16 @@ class CalendarViewModel : ViewModel() {
             if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
                 val url = workInfo.outputData.getString("imageUrl")
                 //Log.d(TAG, url.toString())
-                _imageUrl.value = url
+                _imageUrl.update {
+                    url
+                }
             }
+        }
+    }
+
+    fun dismissCat() {
+        _imageUrl.update {
+            null
         }
     }
 }

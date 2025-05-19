@@ -12,4 +12,14 @@
     <string name="application_logo">Application logo</string>
     <string name="add_a_new_task">Add a new task</string>
     <string name="i_need_inspiration">I need inspiration</string>
+    <string name="error_while_loading_cat">Error while loading cat</string>
+    <string name="go_back_to_today">Go back to today</string>
+    <string name="today">Today</string>
+    <string name="cat_image">Cat Image</string>
+    <string name="add_a_new_task_for">Add a new task for %1$s %2$s, %3$s %4$s</string>
+    <string name="all_done">All done!</string>
+    <string name="description">Description</string>
+    <string name="done">Set the task as done</string>
+    <string name="create">Create</string>
+    <string name="cancel">Cancel</string>
 </resources>

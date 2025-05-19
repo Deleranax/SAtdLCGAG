@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,9 +18,10 @@ import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.Cal
 import com.example.superawesometodolistcatgaggingappgagging.screens.login.LoginScreen
 import com.example.superawesometodolistcatgaggingappgagging.screens.task.TaskScreen
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
+import java.time.LocalDate
 
 enum class Screens() {
-    Login, Calendar, Task
+    Login, Calendar, Task()
 }
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +41,8 @@ fun Routes(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
 ) {
+    var newTaskDate = remember { mutableStateOf(LocalDate.now()) }
+
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -59,11 +64,23 @@ fun Routes(
         }
         composable(route = Screens.Calendar.name) {
             //Include button in calendar screen then passing the selected day into NoteScreen
-            CalendarScreen()
+            CalendarScreen(
+                onNewTask = {
+                    newTaskDate.value = it
+                    navController.navigate(
+                        route = Screens.Task.name
+                    )
+                }
+            )
         }
         dialog(route = Screens.Task.name) {
             //Pass current day (selected from calendar) into NoteScreen
-            TaskScreen()
+            TaskScreen(
+                date = newTaskDate.value,
+                onClose = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
