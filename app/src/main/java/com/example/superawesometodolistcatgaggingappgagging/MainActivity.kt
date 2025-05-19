@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.superawesometodolistcatgaggingappgagging.api.TodoApi
 import com.example.superawesometodolistcatgaggingappgagging.api.TodoFetchWorker
 import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.CalendarScreen
 import com.example.superawesometodolistcatgaggingappgagging.screens.login.LoginScreen
@@ -25,7 +26,7 @@ import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
 import java.time.LocalDate
 
 enum class Screens() {
-    Login, Calendar, Task()
+    Login, Calendar, Task
 }
 
 class MainActivity : ComponentActivity() {
@@ -33,6 +34,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            TodoApi.init(LocalContext.current)
+
             AppTheme {
                 Routes()
             }
@@ -56,13 +59,14 @@ fun Routes(
         composable(route = Screens.Login.name) {
             LoginScreen(
                 onSignIn = {
+                    // Fetching data from API
+                    val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
+                    WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
+
                     navController.navigate(
                         route = Screens.Calendar.name,
                         navOptions {
                             popUpTo(Screens.Login.name) {
-                                // Fetching data from API
-                                val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
-                                WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
                                 inclusive = true
                             }
                         }
@@ -77,6 +81,16 @@ fun Routes(
                     newTaskDate.value = it
                     navController.navigate(
                         route = Screens.Task.name
+                    )
+                },
+                onLogout = {
+                    navController.navigate(
+                        route = Screens.Login.name,
+                        navOptions {
+                            popUpTo(Screens.Calendar.name) {
+                                inclusive = true
+                            }
+                        }
                     )
                 }
             )

@@ -44,7 +44,7 @@ class TaskViewModel(val todoRepository: TodosRepository) : ViewModel() {
                     .addFormDataPart("desc", desc)
                     .addFormDataPart("time", time.toString())
                     .build()
-                TodoApi.retrofitService.addTodo(body)
+                TodoApi.retrofitService?.addTodo(body)
                 val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
                 WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
             } catch (e: Exception) {

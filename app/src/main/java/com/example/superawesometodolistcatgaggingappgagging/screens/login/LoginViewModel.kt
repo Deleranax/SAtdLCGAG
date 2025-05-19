@@ -8,11 +8,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.superawesometodolistcatgaggingappgagging.api.TodoApi
-import com.example.superawesometodolistcatgaggingappgagging.api.TodoFetchWorker
+import com.example.superawesometodolistcatgaggingappgagging.database.PreferenceTable
 import com.example.superawesometodolistcatgaggingappgagging.database.TodosApplication
+import com.example.superawesometodolistcatgaggingappgagging.database.TodosDatabase
 import com.example.superawesometodolistcatgaggingappgagging.database.TodosRepository
 import com.example.superawesometodolistcatgaggingappgagging.screens.calendar.todoApplication
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
-
-enum class LoginResult {
-    NONE, LOADING, INCORRECT, FAILED, CORRECT
-}
 
 object LoginViewModelProvider {
     val Factory = viewModelFactory {
@@ -40,12 +35,11 @@ fun CreationExtras.todoApplication(): TodosApplication =
 
 class LoginViewModel(val todoRepository: TodosRepository) : ViewModel() {
 
-    var loginStateFlow = MutableStateFlow(LoginResult.NONE)
+    private var loading = MutableStateFlow(true)
+    val loadingStateFlow: StateFlow<Boolean> = loading
 
-    fun login(context: Context, username: String, password: String) {
-        loginStateFlow.update {
-            LoginResult.LOADING
-        }
+    fun login(username: String, password: String, onLogin: (Boolean) -> Unit) {
+        loading.update { true }
 
         viewModelScope.launch {
             try {
@@ -54,30 +48,24 @@ class LoginViewModel(val todoRepository: TodosRepository) : ViewModel() {
                     .addFormDataPart("username", username)
                     .addFormDataPart("password", password)
                     .build()
-                val result = TodoApi.retrofitService.login(body)
 
-                if (result.success == 1) {
-                    loginStateFlow.update {
-                        LoginResult.CORRECT
-                    }
-                } else {
-                    loginStateFlow.update {
-                        LoginResult.INCORRECT
-                    }
-                }
+                val result = TodoApi.retrofitService?.login(body)
+
+                loading.update { false }
+
+                onLogin(result != null && result.success == 1)
             } catch (e: Exception) {
                 Log.e("Worker", "Network error: ${e.message}")
-                loginStateFlow.update {
-                    LoginResult.FAILED
-                }
+
+                loading.update { false }
+
+                onLogin(false)
             }
         }
     }
 
-    fun register(context: Context, username: String, password: String) {
-        loginStateFlow.update {
-            LoginResult.LOADING
-        }
+    fun register(username: String, password: String, onRegister: (Boolean) -> Unit) {
+        loading.update { true }
 
         viewModelScope.launch {
             try {
@@ -86,22 +74,41 @@ class LoginViewModel(val todoRepository: TodosRepository) : ViewModel() {
                     .addFormDataPart("username", username)
                     .addFormDataPart("password", password)
                     .build()
-                val result = TodoApi.retrofitService.register(body)
 
-                if (result.success == 1) {
-                    loginStateFlow.update {
-                        LoginResult.CORRECT
-                    }
-                } else {
-                    loginStateFlow.update {
-                        LoginResult.INCORRECT
-                    }
-                }
+                val result = TodoApi.retrofitService?.register(body)
+
+                loading.update { false }
+
+                onRegister(result != null && result.success == 1)
             } catch (e: Exception) {
                 Log.e("Worker", "Network error: ${e.message}")
-                loginStateFlow.update {
-                    LoginResult.FAILED
-                }
+
+                loading.update { false }
+
+                onRegister(false)
+            }
+        }
+    }
+
+    suspend fun checkSession(onSignIn: () -> Unit) {
+        try {
+            val result = TodoApi.retrofitService?.info()
+
+            if (result != null && result.success == 1 && result.data.loggedIn) {
+                onSignIn()
+                todoRepository.setPreference(PreferenceTable("login", "OK"))
+            } else {
+                loading.update { false }
+            }
+        } catch (e: Exception) {
+            val result = todoRepository.getPreference("login")
+
+            Log.i("TAG", result.toString())
+
+            if (result == "OK") {
+                onSignIn()
+            } else {
+                loading.update { false }
             }
         }
     }

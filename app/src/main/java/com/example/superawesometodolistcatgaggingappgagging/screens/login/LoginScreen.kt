@@ -1,5 +1,6 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.login
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -39,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,10 +56,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.superawesometodolistcatgaggingappgagging.R
+import com.example.superawesometodolistcatgaggingappgagging.api.TodoApi
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // TODO: Adapt for landscape
@@ -68,15 +72,20 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(factory = LoginViewModelProvider.Factory),
     onSignIn: () -> Unit = {}
 ) {
-    val painter = painterResource(R.drawable.logo)
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val config = LocalConfiguration.current
+
     val snackbarHostState = remember { SnackbarHostState() }
 
     var username by remember { mutableStateOf("") }
     var passwordState = rememberTextFieldState()
     var passwordVisible by remember { mutableStateOf(false) }
-    var loginState = viewModel.loginStateFlow.collectAsState()
+    val loading = viewModel.loadingStateFlow.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.checkSession(onSignIn)
+    }
 
     Scaffold(
         modifier = modifier,
@@ -84,165 +93,184 @@ fun LoginScreen(
             SnackbarHost(hostState = snackbarHostState)
         },
         bottomBar = {
-            Row (
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        start = 40.dp,
-                        end = 40.dp,
-                        bottom = 60.dp
-                    )
+                    .padding(bottom = 30.dp),
+                contentAlignment = Alignment.Center
             ) {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            viewModel.register(
-                                context = context,
-                                username = username,
-                                password = passwordState.text.toString(),
-                            )
-                        }
-                    }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.width(300.dp)
                 ) {
-                    Text(stringResource(R.string.create_an_account))
-                }
-                Button(
-                    onClick = {
-                        scope.launch {
-                            viewModel.login(
-                                context = context,
-                                username = username,
-                                password = passwordState.text.toString(),
-                            )
-                        }
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.register(
+                                    username = username,
+                                    password = passwordState.text.toString(),
+                                    onRegister = {
+                                        scope.launch {
+                                            if (it) {
+                                                onSignIn()
+                                            } else {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.something_not_right))
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        },
+                        enabled = !username.isEmpty() && !passwordState.text.isEmpty()
+                    ) {
+                        Text(stringResource(R.string.create_an_account))
                     }
-                ) {
-                    Text(stringResource(R.string.sign_in))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                viewModel.login(
+                                    username = username,
+                                    password = passwordState.text.toString(),
+                                    onLogin = {
+                                        scope.launch {
+                                            if (it) {
+                                                onSignIn()
+                                            } else {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.something_not_right))
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        },
+                        enabled = !username.isEmpty() && !passwordState.text.isEmpty()
+                    ) {
+                        Text(stringResource(R.string.sign_in))
+                    }
                 }
             }
         }
     ) { innerPadding ->
-        Column(
+        Row(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
-            verticalArrangement =  Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Image(
-                painter = painter,
-                contentDescription = stringResource(R.string.application_logo),
-                modifier = Modifier.padding(20.dp).size(200.dp)
-            )
-            Text(
-                text = stringResource(R.string.welcome_back),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.displayMedium
-            )
-            Text(
-                text = stringResource(R.string.sign_in_with_your_satdlcgag_account),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            if (config.orientation != Configuration.ORIENTATION_PORTRAIT) {
+                Logo()
+            }
             Column(
-                modifier = Modifier.padding(top = 30.dp),
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text(stringResource(R.string.username)) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                )
-                OutlinedSecureTextField(
-                    state = passwordState,
-                    label = { Text(stringResource(R.string.password)) },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
-                    textObfuscationMode = if (passwordVisible) TextObfuscationMode.Visible else TextObfuscationMode.RevealLastTyped,
-                    trailingIcon = {
-                        IconButton(
-                            onClick = { passwordVisible = !passwordVisible }
-                        ) {
-                            Icon(
-                                imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(
-                                    R.string.show_password
-                                )
-                            )
-                        }
-                    }
-                )
-                Text(buildAnnotatedString {
-                    withLink(
-                        LinkAnnotation.Clickable(
-                            tag = "passwordForgotten",
-                            linkInteractionListener = {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        "That is unfortunate"
+                if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    Logo()
+                }
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.welcome_back),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.displayMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.sign_in_with_your_satdlcgag_account),
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text(stringResource(R.string.username)) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Next
+                        ),
+                    )
+                    OutlinedSecureTextField(
+                        state = passwordState,
+                        label = { Text(stringResource(R.string.password)) },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        textObfuscationMode = if (passwordVisible) TextObfuscationMode.Visible else TextObfuscationMode.RevealLastTyped,
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible }
+                            ) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    contentDescription = if (passwordVisible) stringResource(R.string.hide_password) else stringResource(
+                                        R.string.show_password
                                     )
-                                }
-                            },
-                            styles = TextLinkStyles(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    textDecoration = TextDecoration.Underline
+                                )
+                            }
+                        }
+                    )
+                    Text(buildAnnotatedString {
+                        withLink(
+                            LinkAnnotation.Clickable(
+                                tag = "passwordForgotten",
+                                linkInteractionListener = {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(
+                                            context.getString(R.string.that_is_unfortunate)
+                                        )
+                                    }
+                                },
+                                styles = TextLinkStyles(
+                                    SpanStyle(
+                                        color = MaterialTheme.colorScheme.primary,
+                                        textDecoration = TextDecoration.Underline
+                                    )
                                 )
                             )
-                        )
-                    ) {
-                        append("I forgot my password")
-                    }
-                })
+                        ) {
+                            append("I forgot my password")
+                        }
+                    })
+                }
             }
         }
 
-        when (loginState.value) {
-            LoginResult.NONE -> {}
-            LoginResult.LOADING -> {
-                BasicAlertDialog(
-                    onDismissRequest = {
-                        scope.launch {
-                            viewModel.loginStateFlow.update {
-                                LoginResult.NONE
-                            }
-                        }
-                    }
+        if (loading.value) {
+            BasicAlertDialog(
+                onDismissRequest = {},
+                properties = DialogProperties(
+                    dismissOnBackPress = false,
+                    dismissOnClickOutside = false,
+                )
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    CircularProgressIndicator()
                 }
             }
-            LoginResult.INCORRECT -> {
-                LaunchedEffect(Unit) {
-                    snackbarHostState.showSnackbar(
-                        "Incorrect"
-                    )
-                }
-            }
-            LoginResult.FAILED -> {
-                LaunchedEffect(Unit) {
-                    snackbarHostState.showSnackbar(
-                        "Failed"
-                    )
-                }
-            }
-            LoginResult.CORRECT -> onSignIn()
         }
     }
+}
+
+@Composable
+fun Logo(modifier: Modifier = Modifier) {
+    val painter = painterResource(R.drawable.logo)
+
+    Image(
+        painter = painter,
+        contentDescription = stringResource(R.string.application_logo),
+        modifier = modifier
+            .padding(20.dp)
+            .size(200.dp)
+    )
 }
 
 @Composable

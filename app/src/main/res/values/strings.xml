@@ -23,4 +23,10 @@
     <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="title">Title</string>
+    <string name="that_is_unfortunate">That is unfortunate: contact an administrator.</string>
+    <string name="something_not_right">There was an error: verify your username, your password or your connection.</string>
+    <string name="logout">Logout</string>
+    <string name="confirm">Confirm</string>
+    <string name="are_you_sure_you_want_to_sign_out">You are about to sign out. All your unsaved to-dos are going to be deleted.</string>
+    <string name="sign_out_of">Signing out of %1$s</string>
 </resources>

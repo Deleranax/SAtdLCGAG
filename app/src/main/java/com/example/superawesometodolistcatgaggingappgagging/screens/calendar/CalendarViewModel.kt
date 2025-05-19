@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -58,28 +57,45 @@ class CalendarViewModel(val todoRepository: TodosRepository) : ViewModel() {
         currentPage = TODAY_PAGE,
         pageCount = { PAGE_COUNT }
     )
-    // Media Attributes
-    private val _imageUrl = MutableStateFlow<String?>(null)
-    val imageUrl: StateFlow<String?> = _imageUrl
+
+    // Private attributes
+    private val imageUrl = MutableStateFlow<String?>(null)
 
     // FlowState attributes
     val currentDayStateFlow = snapshotFlow { pagerState.currentPage }.map { pageToDate(it) }
-    val todos: StateFlow<List<TodoTable>> = todoRepository.getAll().stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
+    val imageUrlStateFlow: StateFlow<String?> = imageUrl
+    val todos: StateFlow<List<TodoTable>> = todoRepository.getAll().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
-    fun removeTodo(context: Context, id: String) {
-        viewModelScope.launch {
-            try {
-                val body = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("id", id)
-                    .build()
-                TodoApi.retrofitService.removeTodo(body)
-                val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
-                WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
-            } catch (e: Exception) {
-                Log.e("Worker", "Network error: ${e.message}")
-            }
+    fun refresh(context: Context) {
+        val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
+        WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
+    }
+
+    suspend fun logout() {
+        TodoApi.cookieStore?.removeAll()
+        todoRepository.deleteAll()
+    }
+
+    suspend fun removeTodo(context: Context, id: String): Boolean {
+        try {
+            val body = MultipartBody.Builder()
+                .setType(MultipartBody.FORM)
+                .addFormDataPart("id", id)
+                .build()
+            TodoApi.retrofitService?.removeTodo(body)
+
+            refresh(context)
+
+            return true
+        } catch (e: Exception) {
+            Log.e("Worker", "Network error: ${e.message}")
         }
+
+        return false
     }
 
     fun pageToDate(page: Int): LocalDate {
@@ -107,16 +123,12 @@ class CalendarViewModel(val todoRepository: TodosRepository) : ViewModel() {
             if (workInfo?.state == WorkInfo.State.SUCCEEDED) {
                 val url = workInfo.outputData.getString("imageUrl")
                 //Log.d(TAG, url.toString())
-                _imageUrl.update {
-                    url
-                }
+                imageUrl.update { url }
             }
         }
     }
 
     fun dismissCat() {
-        _imageUrl.update {
-            null
-        }
+        imageUrl.update { null }
     }
 }
