@@ -63,8 +63,6 @@ import com.example.superawesometodolistcatgaggingappgagging.api.TodoApi
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 
-// TODO: Adapt for landscape
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(

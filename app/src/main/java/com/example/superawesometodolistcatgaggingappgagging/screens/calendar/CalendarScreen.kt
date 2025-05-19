@@ -78,6 +78,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.superawesometodolistcatgaggingappgagging.R
 import com.example.superawesometodolistcatgaggingappgagging.api.TodoApi
+import com.example.superawesometodolistcatgaggingappgagging.database.TodoTable
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.map
@@ -180,64 +181,11 @@ fun CalendarScreen(
                         .padding(top = 20.dp)
                 ) {
                     items(todos) { todo ->
-                        var done by remember { mutableStateOf(false) }
-                        var removed by remember { mutableStateOf(false) }
-                        var expended by remember { mutableStateOf(false) }
-
-                        AnimatedVisibility(
-                            visible = !removed,
-                            enter = slideInHorizontally(),
-                            exit = fadeOut() + slideOutHorizontally()
-                        ) {
-                            Card(
-                                modifier = Modifier.padding(5.dp),
-                                onClick = {
-                                    expended = !expended
-                                }
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(20.dp)
-                                        .fillMaxWidth()
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = todo.name,
-                                            style = MaterialTheme.typography.headlineMedium,
-                                            maxLines = 1,
-                                            modifier = modifier.weight(1.0f)
-                                        )
-                                        Checkbox(
-                                            checked = done,
-                                            onCheckedChange = {
-                                                done = true
-
-                                                scope.launch{
-                                                    delay(1000)
-
-                                                    if (viewModel.removeTodo(context, todo.todoID)) {
-                                                        removed = true
-                                                        snackbarHostState.showSnackbar("Task completed!")
-                                                    } else {
-                                                        done = false
-                                                        snackbarHostState.showSnackbar("An error has occurred.")
-                                                    }
-                                                }
-                                            }
-                                        )
-                                    }
-                                    Text(
-                                        text = todo.desc,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        maxLines = if (expended) 100 else 3,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-                        }
+                        TodoItem(
+                            todo = todo,
+                            viewModel = viewModel,
+                            snackbarHostState = snackbarHostState
+                        )
                     }
                 }
             } else {
@@ -282,6 +230,78 @@ fun CalendarScreen(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun TodoItem(
+    todo: TodoTable,
+    viewModel: CalendarViewModel,
+    snackbarHostState: SnackbarHostState
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var done by remember { mutableStateOf(false) }
+    var removed by remember { mutableStateOf(false) }
+    var expended by remember { mutableStateOf(false) }
+
+    AnimatedVisibility(
+        visible = !removed,
+        enter = slideInHorizontally(),
+        exit = fadeOut() + slideOutHorizontally()
+    ) {
+        Card(
+            modifier = Modifier.padding(5.dp),
+            onClick = {
+                expended = !expended
+            }
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = todo.name,
+                        style = MaterialTheme.typography.headlineMedium,
+                        maxLines = 1,
+                        modifier = Modifier.weight(1.0f)
+                    )
+                    Checkbox(
+                        checked = done,
+                        onCheckedChange = {
+                            done = true
+
+                            scope.launch{
+                                delay(1000)
+
+                                if (viewModel.removeTodo(context, todo.todoID)) {
+                                    removed = true
+                                    snackbarHostState.showSnackbar(
+                                        context.getString(
+                                            R.string.task_completed
+                                        ))
+                                } else {
+                                    done = false
+                                    snackbarHostState.showSnackbar("An error has occurred.")
+                                }
+                            }
+                        }
+                    )
+                }
+                Text(
+                    text = todo.desc,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = if (expended) 100 else 3,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
