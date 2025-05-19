@@ -28,7 +28,7 @@ private val interceptor = HttpLoggingInterceptor().setLevel(HttpLoggingIntercept
 private val cookieHandler = CookieManager()
 private val client = OkHttpClient.Builder()
     .addInterceptor(interceptor)
-    // .cookieJar(JavaNetCookieJar(cookieHandler))
+    .cookieJar(JavaNetCookieJar(cookieHandler))
     .build()
 
 private val retrofit = Retrofit.Builder()
