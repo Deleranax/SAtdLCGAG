@@ -10,6 +10,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.Transaction
 import androidx.work.impl.model.Preference
 import kotlinx.coroutines.flow.Flow
 
@@ -38,6 +39,12 @@ interface TodosDao {
     @Insert
     suspend fun insertAll(vararg todos: TodoTable)
 
+    @Transaction
+    suspend fun swap(vararg todos: TodoTable) {
+        deleteAll()
+        insertAll(*todos)
+    }
+
     @Query("SELECT value FROM preferences WHERE `key` = :key")
     suspend fun getPreference(key: String): String?
 
@@ -49,7 +56,7 @@ interface TodosRepository {
     fun getAll(): Flow<List<TodoTable>>
     suspend fun deleteAll()
     suspend fun insertAll(vararg todos: TodoTable)
-
+    suspend fun swap(vararg todos: TodoTable)
     suspend fun getPreference(key: String): String?
     suspend fun setPreference(preference: PreferenceTable)
 }
@@ -58,7 +65,7 @@ class OfflineTodosRepository(private val todosDao: TodosDao) : TodosRepository{
     override fun getAll(): Flow<List<TodoTable>> = todosDao.getAll()
     override suspend fun deleteAll() = todosDao.deleteAll()
     override suspend fun insertAll(vararg todos: TodoTable) = todosDao.insertAll(*todos)
-
+    override suspend fun swap(vararg todos: TodoTable) = todosDao.swap(*todos)
     override suspend fun getPreference(key: String): String? = todosDao.getPreference(key)
     override suspend fun setPreference(preference: PreferenceTable) = todosDao.setPreference(preference)
 }

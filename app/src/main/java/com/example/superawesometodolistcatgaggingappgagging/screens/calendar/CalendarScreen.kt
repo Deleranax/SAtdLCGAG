@@ -2,10 +2,12 @@ package com.example.superawesometodolistcatgaggingappgagging.screens.calendar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -37,10 +39,14 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -316,8 +322,8 @@ fun TodoItem(
                 }
                 AnimatedVisibility(
                     visible = todo.desc.isNotEmpty() && expended,
-                    enter = fadeIn() + slideInVertically(),
-                    exit = fadeOut() + slideOutVertically()
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
                 ) {
                     Text(
                         text = todo.desc,
@@ -439,7 +445,7 @@ fun CatDialog(
 @Composable
 fun DaySelector(
     modifier: Modifier = Modifier,
-    viewModel: CalendarViewModel
+    viewModel: CalendarViewModel,
 ) {
     val scope = rememberCoroutineScope()
     val animationScope = rememberCoroutineScope()
@@ -544,8 +550,18 @@ fun DaySelector(
                 contentPadding = PaddingValues(horizontal = contentPadding)
             ) { page ->
                 val date = viewModel.pageToDate(page)
+                val localTodos = viewModel.todos.collectAsState().value.filter { it.time == date.toEpochDay() }
 
-                Column {
+                BadgedBox(
+                    badge = {
+                        if (localTodos.isNotEmpty())
+                        Badge {
+                            Text(
+                                text = localTodos.size.toString()
+                            )
+                        }
+                    }
+                ) {
                     Card(
                         modifier = Modifier.graphicsLayer {
                             // Calculate the absolute offset for the current page from the
@@ -566,7 +582,17 @@ fun DaySelector(
                             animationScope.launch {
                                 viewModel.select(page)
                             }
-                        }
+                        },
+                        colors = if (date == viewModel.today) {
+                            CardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                disabledContainerColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                disabledContentColor = MaterialTheme.colorScheme.primaryContainer
+                            )
+                        } else {
+                            CardDefaults.cardColors()
+                        },
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
