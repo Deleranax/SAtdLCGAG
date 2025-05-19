@@ -107,7 +107,15 @@ fun LoginScreen(
                     Text(stringResource(R.string.create_an_account))
                 }
                 Button(
-                    onClick = onSignIn
+                    onClick = {
+                        scope.launch {
+                            viewModel.register(
+                                context = context,
+                                username = username,
+                                password = passwordState.text.toString(),
+                            )
+                        }
+                    }
                 ) {
                     Text(stringResource(R.string.sign_in))
                 }
