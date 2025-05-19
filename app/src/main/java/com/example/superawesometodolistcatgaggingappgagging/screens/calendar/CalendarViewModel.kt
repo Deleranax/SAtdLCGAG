@@ -82,38 +82,6 @@ class CalendarViewModel(val todoRepository: TodosRepository) : ViewModel() {
         }
     }
 
-    fun login(context: Context, username: String, password: String, onSuccess: (() -> Unit)) {
-        viewModelScope.launch {
-            try {
-                val body = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("username", username)
-                    .addFormDataPart("password", password)
-                    .build()
-                TodoApi.retrofitService.login(body)
-                onSuccess()
-            } catch (e: Exception) {
-                Log.e("Worker", "Network error: ${e.message}")
-            }
-        }
-    }
-
-    fun register(context: Context, username: String, password: String, onSuccess: (() -> Unit)) {
-        viewModelScope.launch {
-            try {
-                val body = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("username", username)
-                    .addFormDataPart("password", password)
-                    .build()
-                TodoApi.retrofitService.register(body)
-                onSuccess()
-            } catch (e: Exception) {
-                Log.e("Worker", "Network error: ${e.message}")
-            }
-        }
-    }
-
     fun pageToDate(page: Int): LocalDate {
         return today.plusDays((page - TODAY_PAGE).toLong())
     }

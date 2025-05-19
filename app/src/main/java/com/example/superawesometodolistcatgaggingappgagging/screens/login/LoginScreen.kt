@@ -2,6 +2,7 @@ package com.example.superawesometodolistcatgaggingappgagging.screens.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +15,9 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +30,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -47,8 +52,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.superawesometodolistcatgaggingappgagging.R
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // TODO: Adapt for landscape
@@ -57,15 +64,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = viewModel(factory = LoginViewModelProvider.Factory),
     onSignIn: () -> Unit = {}
 ) {
     val painter = painterResource(R.drawable.logo)
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
 
     var username by remember { mutableStateOf("") }
     var passwordState = rememberTextFieldState()
     var passwordVisible by remember { mutableStateOf(false) }
+    var loginState = viewModel.loginStateFlow.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -84,7 +94,15 @@ fun LoginScreen(
                     )
             ) {
                 TextButton(
-                    onClick = {}
+                    onClick = {
+                        scope.launch {
+                            viewModel.login(
+                                context = context,
+                                username = username,
+                                password = passwordState.text.toString(),
+                            )
+                        }
+                    }
                 ) {
                     Text(stringResource(R.string.create_an_account))
                 }
@@ -177,6 +195,31 @@ fun LoginScreen(
                     }
                 })
             }
+        }
+
+        when (loginState.value) {
+            LoginResult.NONE -> {}
+            LoginResult.LOADING -> {
+                BasicAlertDialog(
+                    onDismissRequest = {
+                        scope.launch {
+                            viewModel.loginStateFlow.update {
+                                LoginResult.NONE
+                            }
+                        }
+                    }
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+            LoginResult.INCORRECT -> {}
+            LoginResult.FAILED -> {}
+            LoginResult.CORRECT -> onSignIn()
         }
     }
 }
