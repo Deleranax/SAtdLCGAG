@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import coil.compose.rememberAsyncImagePainter
@@ -74,7 +75,10 @@ import androidx.compose.ui.util.lerp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.superawesometodolistcatgaggingappgagging.R
+import com.example.superawesometodolistcatgaggingappgagging.api.TodoFetchWorker
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -90,7 +94,7 @@ private val TAG = "CalendarScreen"
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    viewModel: CalendarViewModel = viewModel(),
+    viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.Factory),
     onNewTask: (date: LocalDate) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
@@ -368,6 +372,24 @@ fun DaySelector(
                     }
                 }
             }
+        }
+
+        val context = LocalContext.current
+        Column {
+            Button(onClick = {
+                viewModel.addTodo(context, "Hello", "World", "123")
+            }) { Text("Add Todo") }
+
+            val todos by viewModel.todos.collectAsState()
+            LazyColumn {
+                items(todos) { todo ->
+                    Text(todo.todoID.toString())
+                    Text(todo.name)
+                    Text(todo.desc)
+                    Text(todo.time)
+                }
+            }
+
         }
     }
 }
