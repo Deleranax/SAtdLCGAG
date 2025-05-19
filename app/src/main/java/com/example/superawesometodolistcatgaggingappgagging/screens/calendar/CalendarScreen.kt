@@ -1,10 +1,6 @@
 package com.example.superawesometodolistcatgaggingappgagging.screens.calendar
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.animateBounds
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.getValue
@@ -31,14 +27,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.filled.DoneAll
-import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Today
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -52,40 +45,28 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.example.superawesometodolistcatgaggingappgagging.R
-import com.example.superawesometodolistcatgaggingappgagging.api.TodoFetchWorker
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
-import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 private val TAG = "CalendarScreen"
@@ -94,7 +75,7 @@ private val TAG = "CalendarScreen"
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    viewModel: CalendarViewModel = viewModel(factory = AppViewModelProvider.Factory),
+    viewModel: CalendarViewModel = viewModel(factory = CalendarViewModelProvider.Factory),
     onNewTask: (date: LocalDate) -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()

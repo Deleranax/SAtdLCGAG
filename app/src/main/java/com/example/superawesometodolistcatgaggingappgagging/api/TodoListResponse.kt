@@ -17,5 +17,5 @@ data class TodoListItem(
     val id: String,
     val name: String,
     val desc: String,
-    val time: String
+    val time: Long
 )

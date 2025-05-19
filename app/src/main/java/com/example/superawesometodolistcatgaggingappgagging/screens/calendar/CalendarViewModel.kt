@@ -2,18 +2,14 @@ package com.example.superawesometodolistcatgaggingappgagging.screens.calendar;
 
 import android.content.Context
 import android.util.Log
-import android.widget.CalendarView
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.work.ListenableWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -25,7 +21,6 @@ import com.example.superawesometodolistcatgaggingappgagging.database.TodosReposi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -33,11 +28,10 @@ import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
-import kotlin.coroutines.coroutineContext
 
 private val TAG = "CalendarViewModel"
 
-object AppViewModelProvider {
+object CalendarViewModelProvider {
     val Factory = viewModelFactory {
         initializer {
             CalendarViewModel(
@@ -71,24 +65,6 @@ class CalendarViewModel(val todoRepository: TodosRepository) : ViewModel() {
     // FlowState attributes
     val currentDayStateFlow = snapshotFlow { pagerState.currentPage }.map { pageToDate(it) }
     val todos: StateFlow<List<TodoTable>> = todoRepository.getAll().stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = emptyList())
-
-    fun addTodo(context: Context, name: String, desc: String, time: String) {
-        viewModelScope.launch {
-            try {
-                val body = MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("name", name)
-                    .addFormDataPart("desc", desc)
-                    .addFormDataPart("time", time)
-                    .build()
-                TodoApi.retrofitService.addTodo(body)
-                val oneTimeWorkRequest = OneTimeWorkRequestBuilder<TodoFetchWorker>().build()
-                WorkManager.getInstance(context).enqueue(oneTimeWorkRequest)
-            } catch (e: Exception) {
-                Log.e("Worker", "Network error: ${e.message}")
-            }
-        }
-    }
 
     fun removeTodo(context: Context, id: String) {
         viewModelScope.launch {

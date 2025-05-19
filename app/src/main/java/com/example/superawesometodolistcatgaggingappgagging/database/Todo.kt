@@ -22,7 +22,7 @@ data class TodoTable(
     @ColumnInfo(name = "id") val todoID: String,
     @ColumnInfo(name = "name") val name: String,
     @ColumnInfo(name = "desc") val desc: String,
-    @ColumnInfo(name = "time") val time: String,
+    @ColumnInfo(name = "time") val time: Long,
 )
 
 @Dao

@@ -25,10 +25,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.superawesometodolistcatgaggingappgagging.R
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -40,14 +42,16 @@ import java.util.Locale
 fun TaskScreen(
     date: LocalDate,
     modifier: Modifier = Modifier,
+    viewModel: TaskViewModel = viewModel(factory = TaskViewModelProvider.Factory),
     onClose: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     val sheetState = rememberModalBottomSheetState()
 
+    var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var done by remember { mutableStateOf(false) }
 
     ModalBottomSheet(
         sheetState = sheetState,
@@ -95,20 +99,13 @@ fun TaskScreen(
                 modifier = Modifier.height(10.dp)
             )
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text(stringResource(R.string.title)) },
+                minLines = 3,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.done),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-                Switch(
-                    checked = done,
-                    onCheckedChange = { done = it },
-                )
-            }
+            )
 
             Spacer(
                 modifier = Modifier.height(20.dp)
@@ -131,6 +128,12 @@ fun TaskScreen(
                 Button(
                     onClick = {
                         scope.launch {
+                            viewModel.addTodo(
+                                context = context,
+                                name = title,
+                                desc = description,
+                                time = date.toEpochDay()
+                            )
                             sheetState.hide()
                             onClose()
                         }
