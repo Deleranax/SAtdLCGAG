@@ -357,17 +357,13 @@ fun DaySelector(
 
         val context = LocalContext.current
         Column {
-            Button(onClick = {
-                viewModel.addTodo(context, "Hello", "World", "123")
-            }) { Text("Add Todo") }
-
             val todos by viewModel.todos.collectAsState()
             LazyColumn {
                 items(todos) { todo ->
                     Text(todo.todoID.toString())
                     Text(todo.name)
                     Text(todo.desc)
-                    Text(todo.time)
+                    Text(todo.time.toString())
                 }
             }
 
