@@ -217,7 +217,7 @@ fun CalendarScreen(
             isRefreshing = false,
             onRefresh = {}
         ) {
-            if (false /* Check if there if something */) {
+            if (todos.isNotEmpty()) {
                 LazyColumn(
                     modifier = Modifier
                         .padding(innerPadding)
