@@ -63,6 +63,7 @@ import coil.compose.AsyncImagePainter
 import coil.request.ImageRequest
 import com.example.superawesometodolistcatgaggingappgagging.R
 import com.example.superawesometodolistcatgaggingappgagging.ui.theme.AppTheme
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -84,6 +85,11 @@ fun CalendarScreen(
 
     val currentDayState = viewModel.currentDayStateFlow.collectAsState(LocalDate.now())
     val imageUrl by viewModel.imageUrl.collectAsState()
+    val todos by viewModel.todos.map {
+        it.filter {
+            it.time == currentDayState.value.toEpochDay()
+        }
+    }.collectAsState(listOf())
 
     LaunchedEffect(currentDayState.value) {
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -217,7 +223,12 @@ fun CalendarScreen(
                         .padding(innerPadding)
                         .fillMaxSize()
                 ) {
-                    // Add the task list here
+                    items(todos) { todo ->
+                        Text(todo.todoID.toString())
+                        Text(todo.name)
+                        Text(todo.desc)
+                        Text(todo.time.toString())
+                    }
                 }
             } else {
                 Box (
@@ -353,20 +364,6 @@ fun DaySelector(
                     }
                 }
             }
-        }
-
-        val context = LocalContext.current
-        Column {
-            val todos by viewModel.todos.collectAsState()
-            LazyColumn {
-                items(todos) { todo ->
-                    Text(todo.todoID.toString())
-                    Text(todo.name)
-                    Text(todo.desc)
-                    Text(todo.time.toString())
-                }
-            }
-
         }
     }
 }
