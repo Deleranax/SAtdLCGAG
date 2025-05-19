@@ -85,11 +85,7 @@ fun CalendarScreen(
 
     val currentDayState = viewModel.currentDayStateFlow.collectAsState(LocalDate.now())
     val imageUrl by viewModel.imageUrl.collectAsState()
-    val todos by viewModel.todos.map {
-        it.filter {
-            it.time == currentDayState.value.toEpochDay()
-        }
-    }.collectAsState(listOf())
+    val todos by viewModel.todos.collectAsState()
 
     LaunchedEffect(currentDayState.value) {
         hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -223,7 +219,7 @@ fun CalendarScreen(
                         .padding(innerPadding)
                         .fillMaxSize()
                 ) {
-                    items(todos) { todo ->
+                    items(todos.filter { it.time == currentDayState.value.toEpochDay() }) { todo ->
                         Text(todo.todoID.toString())
                         Text(todo.name)
                         Text(todo.desc)
