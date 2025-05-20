@@ -299,12 +299,7 @@ fun TodoItem(
                                 removed = true
                                 delay(500)
 
-                                if (viewModel.removeTodo(context, todo.todoID)) {
-                                    snackbarHostState.showSnackbar(
-                                        context.getString(
-                                            R.string.task_completed
-                                        ))
-                                } else {
+                                if (!viewModel.removeTodo(context, todo.todoID)) {
                                     done = false
                                     removed = false
                                     snackbarHostState.showSnackbar("An error has occurred.")
